@@ -1,32 +1,31 @@
 <html>
+
 <head>
-  <script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
-  <script>
-  //connect to binary server
+    <script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
+    <script>
+    //connect to binary server
     var client = new BinaryClient('ws://localhost:9000');
-    
+    var music = document.createElement("audio");
+    music.controls = true;
+    music.autoplay = false;
+    music.preload = "false";
     //Received new stream from server
     client.on('stream', function(stream, meta) {
-     
-     //Buffer for parts
-      var parts = [];
 
-     //Got new data
-      stream.on('data', function(data) {
-        parts.push(data);
-      });
-      
-      stream.on('end', function() {
-             //play music data in browser
-        var music = document.createElement("audio");
-        music.src=(window.URL || window.webkitURL).createObjectURL(new Blob(parts));
-        music.controls="controls";
-        music.preload="";        
-        document.body.appendChild(music);        
-      });
+        //Buffer for parts
+        var parts = [];
+        //Got new data
+        stream.on('data', function(data) {
+            parts.push(data);
+            music.src = (window.URL || window.webkitURL).createObjectURL(new Blob(parts));
+            document.body.appendChild(music);
+        });
+
     });
-  </script>
+    </script>
 </head>
+
 <body>
-</body>  
+</body>
+
 </html>

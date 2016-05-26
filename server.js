@@ -7,9 +7,9 @@ var path = require('path');
 var data;
 
 // Create an app to serve static file
-var app = http.createServer(function (req, res) {
+var app = http.createServer(function(req, res) {
   var stream = fs.createReadStream(__dirname + '/index.html');
-  stream.on('error', function (err) {
+  stream.on('error', function(err) {
     res.statusCode = 500;
     res.end(String(err));
   });
@@ -17,28 +17,31 @@ var app = http.createServer(function (req, res) {
 });
 
 // Start Binary.js server
-var server = BinaryServer({server: app});
+var server = BinaryServer({
+  server: app
+});
 
 // Wait for new user connections
-server.on('connection', function(client){
+server.on('connection', function(client) {
   // Stream an audio as a hello!
-  var file = fs.createReadStream(__dirname + '/Windows_7.mp3');
-    var file1 = fs.createReadStream(__dirname + '/inside.mp3');
-    var file2=fs.createReadStream(__dirname+ '/YJHD-Ghagra.mp3')
-  
-  file.on('data',function(chunk){
-    data+=chunk;
-  })
-  client.send(file);
-   client.send(file1);
+  var music = fs.createReadStream(__dirname + '/Windows_7.mp3');
+
+  music.on('data', function(chunk) {
+    chunk += chunk;
+    client.send(chunk);
+    console.log('In data');
+  });
+
+  music.on('end', function() {
+    console.log('data ended');
+    // client.send(music);
+  });
+
+  music.on('error', function(err) {
+    console.log(err.stack);
+  });
+
 });
 
 app.listen(9000);
-console.log('HTTP and BinaryJS server started on port 9000 at'+(new Date().toLocaleString().substr(10, 12)));
-
-io.of('/user').on('connection', function(socket) {
-  ss(socket).on('profile-image', function(stream, data) {
-    var filename = path.basename(data.name);
-    stream.pipe(fs.createWriteStream(filename));
-  });
-});
+console.log('HTTP and BinaryJS server started on port 9000 at' + (new Date().toLocaleString().substr(10, 12)));
