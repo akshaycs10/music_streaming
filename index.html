@@ -1,31 +1,79 @@
 <html>
 
 <head>
-    <script src="https://cdn.jsdelivr.net/binaryjs/0.2.1/binary.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-    //connect to binary server
-    var client = new BinaryClient('ws://localhost:9000');
+    var socket = io();
+ 
+    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    var frameCount = audioContext.sampleRate * 2.0;
+    var playSoundBuffer=null //= audioContext.createBuffer(2, frameCount, audioContext.sampleRate);
     var music = document.createElement("audio");
     music.controls = true;
-    music.autoplay = false;
-    music.preload = "false";
-    //Received new stream from server
-    client.on('stream', function(stream, meta) {
+    window.addEventListener('load', init, false);
 
-        //Buffer for parts
-        var parts = [];
-        //Got new data
-        stream.on('data', function(data) {
-            parts.push(data);
-            music.src = (window.URL || window.webkitURL).createObjectURL(new Blob(parts));
-            document.body.appendChild(music);
+    function init() {
+        try {
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+            console.log('init')
+        } catch (e) {
+            alert('Web Audio API is not supported in this browser');
+        }
+    }
+
+    function toArrayBuffer(buffer) {
+    var ab = new ArrayBuffer(buffer.length);
+    var view = new Uint8Array(ab);
+    for (var i = 0; i < buffer.length; ++i) {
+        view[i] = buffer[i];
+    }
+    return ab;
+}
+var cnt=0;
+var flag=true;
+    var file = 'inside';
+    socket.emit('inside', file);
+    socket.on('music', function(data) {
+         
+         
+        //console.log('type=', data.buffer)
+       // var dt=JSON.stringify(data.buffer);    
+       // var audiodata=str2ab(data);
+        //console.log(audiodata);
+       // var audiodata = Base64Binary.decodeArrayBuffer(data);
+        audioContext.decodeAudioData(data.buffer, function(buffer) {
+            console.log("ttttt ",typeof playSoundBuffer)
+            playSoundBuffer = buffer;
+            cnt++;
+            console.log("bt ",typeof buffer)
+           // document.body.appendChild(playSoundBuffer);
+           //if(cnt===9)
+            playSound(); // don't start processing it before the response is there!
+            console.log("in ")
+        }, function(error) {
+            console.error("decodeAudioData error", error);
         });
-
     });
+
+  function playSound() {
+    var source = audioContext.createBufferSource();
+    source.buffer = playSoundBuffer;   
+    source.loop = true;    // This is the line that generates the error
+    source.connect(audioContext.destination);
+    //if(flag==true)
+    source.start();
+    flag=false;
+}
+
+  
+
+
     </script>
 </head>
 
 <body>
+    <h2>Music streaming</h2>
 </body>
 
 </html>
